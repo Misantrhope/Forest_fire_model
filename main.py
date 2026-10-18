@@ -16,7 +16,7 @@ F_LIGHTNING = 0.0001
 K_THRESHOLD = 1
 NEIGHBORHOOD = 4
 STEPS = 500
-SEED = 42
+SEED = 44
 
 
 def init_forest(rows, cols, tree_prob, seed=None):
