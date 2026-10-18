@@ -3,20 +3,19 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib.colors import ListedColormap
 
-
 EMPTY = 0
 TREE = 1
 BURNING = 2
 
-
-ROWS, COLS = 60, 60
+ROWS, COLS = 40, 40
 TREE_PROB = 0.7
 P_GROW = 0.01
 F_LIGHTNING = 0.0001
 K_THRESHOLD = 1
-NEIGHBORHOOD = 4
+NEIGHBORHOOD = 8
 STEPS = 500
-SEED = 44
+SEED = 42
+GIF_FPS = 20
 
 
 def init_forest(rows, cols, tree_prob, seed=None):
@@ -27,6 +26,7 @@ def init_forest(rows, cols, tree_prob, seed=None):
         p=[1 - tree_prob, tree_prob]
     )
     return grid.astype(np.uint8)
+
 
 def count_burning_neighbors(grid, i, j, neighborhood):
     rows, cols = grid.shape
@@ -42,6 +42,7 @@ def count_burning_neighbors(grid, i, j, neighborhood):
                 if grid[ni, nj] == BURNING:
                     count += 1
     return count
+
 
 def step(grid, p, f, k, neighborhood):
     rows, cols = grid.shape
@@ -61,6 +62,7 @@ def step(grid, p, f, k, neighborhood):
                     new_grid[i, j] = TREE
     return new_grid
 
+
 def count_states(g):
     return {
         'empty': int(np.sum(g == EMPTY)),
@@ -68,12 +70,14 @@ def count_states(g):
         'burning': int(np.sum(g == BURNING)),
     }
 
-def format_stats_text(step, cur, grown_now, burned_now, total_grown, total_burned, total_cells):
+
+def format_stats_text(step, cur, grown_now, burned_now,
+                      total_grown, total_burned, total_cells):
     return (
         f"Шаг: {step}\n"
-        f"Пусто:   {cur['empty']:5d}  ({cur['empty']/total_cells*100:5.1f}%)\n"
-        f"Деревья: {cur['tree']:5d}  ({cur['tree']/total_cells*100:5.1f}%)\n"
-        f"Горит:   {cur['burning']:5d}  ({cur['burning']/total_cells*100:5.1f}%)\n"
+        f"Пусто:   {cur['empty']:5d}  ({cur['empty'] / total_cells * 100:5.1f}%)\n"
+        f"Деревья: {cur['tree']:5d}  ({cur['tree'] / total_cells * 100:5.1f}%)\n"
+        f"Горит:   {cur['burning']:5d}  ({cur['burning'] / total_cells * 100:5.1f}%)\n"
         f"---\n"
         f"Выросло за шаг:  {grown_now}\n"
         f"Сгорело за шаг:  {burned_now}\n"
@@ -86,13 +90,11 @@ def format_stats_text(step, cur, grown_now, burned_now, total_grown, total_burne
 grid = init_forest(ROWS, COLS, TREE_PROB, SEED)
 total_cells = ROWS * COLS
 
-
 stats = {
     'total_trees_grown': 0,
     'total_trees_burned': 0,
     'history': {'step': [], 'empty': [], 'tree': [], 'burning': []}
 }
-
 
 colors = ['#1a1a1a', '#2e8b57', '#ff4500']
 cmap = ListedColormap(colors)
@@ -111,7 +113,6 @@ stats_text = ax.text(
     bbox=dict(boxstyle="round", facecolor="white", alpha=0.85)
 )
 
-
 initial_cur = count_states(grid)
 stats['history']['step'].append(0)
 stats['history']['empty'].append(initial_cur['empty'])
@@ -129,7 +130,6 @@ stats_text.set_text(
         total_cells=total_cells
     )
 )
-
 
 fig.savefig('forest_fire_initial.png', dpi=150, bbox_inches='tight')
 print("Сохранён начальный шаг: forest_fire_initial.png")
@@ -185,14 +185,14 @@ ani = FuncAnimation(
     cache_frame_data=False
 )
 
+ani.save('forest_fire.gif', writer='pillow', fps=GIF_FPS)
+print("Сохранена анимация: forest_fire.gif")
+
 plt.tight_layout()
 plt.show()
 
-
-
 fig.savefig('forest_fire_final.png', dpi=150, bbox_inches='tight')
 print("Сохранён конечный шаг: forest_fire_final.png")
-
 
 final = count_states(grid)
 
@@ -208,9 +208,9 @@ print(f"Порог загорания k:      {K_THRESHOLD}")
 print(f"Окрестность:            {NEIGHBORHOOD} соседей")
 print("-" * 50)
 print("СОСТОЯНИЕ НА КОНЕЦ СИМУЛЯЦИИ:")
-print(f"  Пусто:    {final['empty']:5d}  ({final['empty']/total_cells*100:5.1f}%)")
-print(f"  Деревья:  {final['tree']:5d}  ({final['tree']/total_cells*100:5.1f}%)")
-print(f"  Горит:    {final['burning']:5d}  ({final['burning']/total_cells*100:5.1f}%)")
+print(f"  Пусто:    {final['empty']:5d}  ({final['empty'] / total_cells * 100:5.1f}%)")
+print(f"  Деревья:  {final['tree']:5d}  ({final['tree'] / total_cells * 100:5.1f}%)")
+print(f"  Горит:    {final['burning']:5d}  ({final['burning'] / total_cells * 100:5.1f}%)")
 print("-" * 50)
 print("СУММАРНЫЕ СОБЫТИЯ ЗА ВСЮ СИМУЛЯЦИЮ:")
 print(f"  Всего деревьев выросло:  {stats['total_trees_grown']}")
